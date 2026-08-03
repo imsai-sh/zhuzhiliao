@@ -1,0 +1,16 @@
+{
+  "string": [
+    {
+      "name": "module_desc",
+      "value": "竹知了离线互动玩具"
+    },
+    {
+      "name": "EntryAbility_desc",
+      "value": "按住画圈，甩起会叫的竹知了"
+    },
+    {
+      "name": "EntryAbility_label",
+      "value": "竹知了"
+    }
+  ]
+}

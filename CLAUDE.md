@@ -21,13 +21,16 @@ python3 -m http.server 8123
 # 局域网 HTTPS（手机"甩手机"体感模式需要安全上下文才有 devicemotion）
 python3 .claude/tls/serve-https.py        # 默认 8443，证书在 .claude/tls/，不进 git
 
+# 校验 HarmonyOS 离线包中的共享 Web 资源
+python3 harmonyos/tools/sync_web_assets.py --check
+
 # 部署计数后端
 cd worker && npx wrangler deploy
 ```
 
 ## 架构
 
-三块代码，边界清晰：
+四块代码，边界清晰：
 
 ### `index.html`（~1350 行，主体）
 
@@ -54,9 +57,17 @@ cd worker && npx wrangler deploy
 - **防刷**：文件头部一组常量（单条消息哇数上限、单连接滑动窗口限速、并发连接上限、按 IP 频控），调参改常量即可。
 - 路由配置在 `worker/wrangler.jsonc`（zone route `zhuzhiliao.imsai.cc/api/*`）。
 
+### `harmonyos/`（HarmonyOS 离线应用）
+
+独立的 DevEco Studio Stage 工程，用 ArkWeb 从 `entry/src/main/resources/rawfile/web/` 加载离线网页。
+ArkTS 只负责沉浸式窗口、安全区、URL 拦截和原生加速度计桥接；物理、声音与绘制仍由网页实现。
+该目录不改变根目录 Web 版的零依赖、零构建约束。
+离线页相对 Web 主站的分叉记录在 `harmonyos/WEB_SNAPSHOT.md`；修改根目录 `3d/` 共享资源后，
+用 `python3 harmonyos/tools/sync_web_assets.py --write` 同步并重新运行烟测。
+
 ## 约束
 
-- **不引入任何构建步骤或 npm 依赖**：新资源要么内嵌（base64）、要么 vendor 进仓库、要么走可静默失败的动态 import。
+- **Web 主站不引入任何构建步骤或 npm 依赖**：新资源要么内嵌（base64）、要么 vendor 进仓库、要么走可静默失败的动态 import；`harmonyos/` 的 DevEco 构建保持在独立目录内。
 - **移动端优先**：改交互/布局时注意安全区适配、多点触控互斥、触屏锚点上移、绳长随屏幕缩放这些已有处理。
 - 修改 3D 层时保持接口不变（主站只认 `init` 返回的四个方法），且任何失败都必须静默回落 2D。
 - README.md 详细记录了发声原理、采样制作方式、物理模型和后端同步策略，改相关行为时同步更新。

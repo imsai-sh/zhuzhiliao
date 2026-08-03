@@ -1,0 +1,8 @@
+{
+  "name": "entry",
+  "version": "1.0.0",
+  "description": "ArkUI and ArkWeb entry module for the offline Zhuzhiliao app.",
+  "main": "",
+  "author": "imsai-sh",
+  "dependencies": {}
+}

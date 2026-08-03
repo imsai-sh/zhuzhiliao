@@ -25,6 +25,17 @@
 python3 -m http.server 8123
 ```
 
+## HarmonyOS 离线版
+
+[`harmonyos/`](harmonyos/) 提供基于 ArkUI + ArkWeb 的 HarmonyOS 应用。网页、声音与 3D 资源均打包进 HAP，
+无需联网即可运行；“甩手机”由原生 `SensorServiceKit` 采集加速度，再通过 JavaScript Proxy 驱动网页物理模型。
+
+- 支持 phone、tablet 与 2in1，包含竖屏、横屏及沉浸式安全区适配
+- 最低兼容 HarmonyOS 6.1.1（API 24），目标 API 26
+- 不申请网络权限；加速度计权限为安装时系统授予
+
+构建、签名和验证说明见 [`harmonyos/README.md`](harmonyos/README.md)。
+
 ## 真实玩具的发声原理
 
 竹筒一端蒙竹膜，膜心系一根涂了**松香**的线，线的另一头拴在小竹签上。
