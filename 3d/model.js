@@ -199,51 +199,20 @@ export function createZhuzhiliaoModel(options = {}) {
   const bodyPivot = addGroup('body-assembly', root, { pos: [0, 1.0, 0] });
   const body = addGroup('body-frame', bodyPivot, { pos: [0, -1.0, 0] });
 
-  const tube = addMesh('tube-shell',
-    new THREE.CylinderGeometry(0.334, 0.334, 0.90, 48, 1, true), M.bamboo, body,
-    { pos: [0, 0.45, 0] });
-  tube.material = tube.material.clone();
-  tube.material.side = THREE.DoubleSide;
-  addMesh('tube-underside', new THREE.CircleGeometry(0.334, 48), M.dark, body,
-    { pos: [0, 0.012, 0], rot: [-Math.PI / 2, 0, 0], explodeWithParent: true });
+  // ycd.png 替换程序化蝉身：一张带贴图的卡片，随 bodyPivot 一起公转/自旋
+  const ycdTex = new THREE.TextureLoader().load('res/ycd.png');
+  ycdTex.colorSpace = THREE.SRGBColorSpace;
+  ycdTex.anisotropy = 4;
+  addMesh('ycd-body',
+    new THREE.PlaneGeometry(654 / 942, 1.0),
+    new THREE.MeshBasicMaterial({
+      map: ycdTex, transparent: true, side: THREE.DoubleSide, depthWrite: false,
+    }), body, { pos: [0, 0.45, 0] });
 
-  addMesh('rim-cap', capGeometry(), M.red, body, { pos: [0, 0.893, 0] });
-
-  addMesh('membrane-top', new THREE.CylinderGeometry(0.318, 0.318, 0.02, 48), M.bambooMembrane, body,
-    { pos: [0, 0.982, 0] });
-  addMesh('string-knot', new THREE.SphereGeometry(0.014, 16, 12), M.string, body,
-    { pos: [0.24, 0.998, 0.0], explodeWithParent: true });
+  // 松香线系在鼓面(蝉头)绳孔：保留插孔供每帧重建绳
   sockets['membrane-center'] = new THREE.Object3D();
   sockets['membrane-center'].position.set(0.24, 1.0, 0.0);
   body.add(sockets['membrane-center']);
-
-  // 眼睛：半嵌在筒壁上的亮黑珠，方位角 ±30.5°，高度 y=0.80
-  const eyeAz = (30.5 * Math.PI) / 180;
-  for (const [id, sign] of [['eye-left', -1], ['eye-right', 1]]) {
-    addMesh(id, new THREE.SphereGeometry(0.042, 24, 16), M.black, body,
-      { pos: [sign * 0.334 * Math.sin(eyeAz), 0.80, 0.334 * Math.cos(eyeAz)] });
-  }
-
-  // 翅膀：以红销钉为铰点下垂，顶端内靠、梢部外八字张开
-  for (const [id, sign] of [['wing-left', -1], ['wing-right', 1]]) {
-    const pivot = addGroup(id + '-pivot', body, { pos: [sign * 0.14, 0.76, 0.29] });
-    const wing = new THREE.Mesh(wingGeometry(), M.bambooWing);
-    wing.name = id;
-    wing.position.set(sign * 0.01, -0.51, 0.025 + (id === 'wing-left' ? 0.014 : 0.0));
-    wing.castShadow = castShadow;
-    wing.receiveShadow = receiveShadow;
-    pivot.add(wing);
-    meshes[id] = wing;
-    pivot.rotation.set(0.17, sign * -0.04, sign * 0.085);
-    addMesh('wing-pin-' + (sign < 0 ? 'left' : 'right'), new THREE.SphereGeometry(0.021, 16, 12), M.red,
-      pivot, { pos: [sign * 0.04, -0.035, 0.005], explodeWithParent: true });
-  }
-
-  // 脚：底部前侧外八字小楔
-  for (const [id, sign] of [['foot-left', -1], ['foot-right', 1]]) {
-    addMesh(id, footGeometry(), M.bamboo, body,
-      { pos: [sign * 0.155, 0.012, 0.19], rot: [0.06, sign * -0.42, 0] });
-  }
 
   // ---- 甩杆（握持枢轴在下三分之一处） ----
   const handle = addGroup('handle-assembly', root, { pos: [0.63, 0, 0], rot: [0, 0, -0.008] });
@@ -304,8 +273,8 @@ export function createZhuzhiliaoModel(options = {}) {
   const explodables = [];
   const partUnits = ['tube-shell', 'rim-cap', 'membrane-top', 'eye-left', 'eye-right',
     'foot-left', 'foot-right', 'stick-shaft', 'knob-sphere-top', 'spacer-rondelle', 'knob-sphere-lower'];
-  for (const id of partUnits) explodables.push(meshes[id]);
-  explodables.push(nodes['wing-left-pivot'], nodes['wing-right-pivot']);
+  for (const id of partUnits) if (meshes[id]) explodables.push(meshes[id]);
+  for (const id of ['wing-left-pivot', 'wing-right-pivot']) if (nodes[id]) explodables.push(nodes[id]);
   for (const obj of explodables) basePos.set(obj, obj.position.clone());
 
   const center = new THREE.Vector3(0.31, 0.85, 0);
@@ -347,14 +316,17 @@ export function createZhuzhiliaoModel(options = {}) {
     bodyPivot.position.set(pose.tube.x, pose.tube.y, 0);
     bodyPivot.rotation.set(pose.tilt, pose.spin, pose.headAngle, 'ZYX');
     // 翅膀：左右各自的铰链角由外部动力学给出（跟随晃动、气流张开、高频振翅）
-    nodes['wing-left-pivot'].rotation.x = pose.wingL;
-    nodes['wing-right-pivot'].rotation.x = pose.wingR;
+    // ycd.png 卡片替换蝉身后无翅膀节点，保留空节点时静默
+    const wlp = nodes['wing-left-pivot'], wrp = nodes['wing-right-pivot'];
+    if (wlp) wlp.rotation.x = pose.wingL;
+    if (wrp) wrp.rotation.x = pose.wingR;
     root.updateMatrixWorld(true);
     rebuildString();
   };
   // 发声强度 → 鼓面透光
   root.userData.setSing = (v) => {
-    meshes['membrane-top'].material.emissiveIntensity = v * 0.85;
+    const m = meshes['membrane-top'];
+    if (m) m.material.emissiveIntensity = v * 0.85;   // ycd 卡片替换后无鼓面，静默
   };
 
   root.userData.tick = (dt, t) => {
@@ -362,8 +334,9 @@ export function createZhuzhiliaoModel(options = {}) {
     state.t = t;
     const flutterA = state.mode === 'whirl' ? 0.35 : 0.02;
     const flutterF = state.mode === 'whirl' ? 34 : 2.1;
-    nodes['wing-left-pivot'].rotation.x = 0.17 + Math.sin(t * flutterF) * flutterA;
-    nodes['wing-right-pivot'].rotation.x = 0.17 + Math.sin(t * flutterF + 0.7) * flutterA;
+    const flp = nodes['wing-left-pivot'], frp = nodes['wing-right-pivot'];
+    if (flp) flp.rotation.x = 0.17 + Math.sin(t * flutterF) * flutterA;
+    if (frp) frp.rotation.x = 0.17 + Math.sin(t * flutterF + 0.7) * flutterA;
     if (state.mode === 'whirl') {
       // 蝉体被绷紧的线拉着绕杆头公转，身体外倾、面向行进方向
       const anchor = sockets['stick-waist'].getWorldPosition(new THREE.Vector3());

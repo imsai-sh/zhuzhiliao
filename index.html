@@ -407,6 +407,11 @@ let idleTime = 0;                         // 完全静置的累计时长
 let revAccum = 0;                         // 手动甩的角度累计(每 2π 记一哇)
 let needSoundTime = 0;                    // "想出声却出不了"的持续时长
 
+/* ---------- ycd.png 替换蝉身（转的就是这张图） ---------- */
+const ycdImg = new Image();
+ycdImg.src = 'res/ycd.png';
+let spin2d = 0;                           // 2D 蝉身自旋角（随转速累计）
+
 /* ---------- 场景缓存(随 resize 重建为离屏层，避免每帧全屏静态重绘) ---------- */
 let bgLayer = null, moonBambooLayer = null, fgLayer = null;
 let stars = [], flies = [];
@@ -976,7 +981,7 @@ function draw(now, dt){
     toy3d.render({ now, dt, stick, tube, ropeLen: ROPE_LEN, ropeDist,
                    omega, active, stickTilt: STICK_TILT3D });
   }else{
-    drawToy(now);
+    drawToy(now, dt);
   }
 
   // 飘出的「哇」
@@ -1001,7 +1006,7 @@ function draw(now, dt){
   if(fgLayer && fgLayer.width > 0) ctx.drawImage(fgLayer, 0, 0, W, H);
 }
 
-function drawToy(now){
+function drawToy(now, dt){
   const dx = tube.x - stick.x, dy = tube.y - stick.y;
   const d = Math.hypot(dx, dy) || 1e-6;
   const ux = dx/d, uy = dy/d;
@@ -1057,81 +1062,92 @@ function drawToy(now){
   ctx.rotate(Math.atan2(uy, ux) - Math.PI/2);
   ctx.scale(1.35, 1.35);
 
-  // 筒身：浅竹色
-  if(!tubeGrad){
-    tubeGrad = ctx.createLinearGradient(-12, 0, 12, 0);
-    tubeGrad.addColorStop(0, '#b7a271');
-    tubeGrad.addColorStop(0.3, '#eadfb8');
-    tubeGrad.addColorStop(0.62, '#dfd0a2');
-    tubeGrad.addColorStop(1, '#9b8452');
-  }
-  ctx.fillStyle = tubeGrad;
-  ctx.beginPath();
-  ctx.roundRect(-12, 4, 24, 46, 6);
-  ctx.fill();
-
-  // 尾端开口
-  ctx.fillStyle = '#4c3d24';
-  ctx.beginPath(); ctx.ellipse(0, 49, 11, 4.2, 0, 0, TAU); ctx.fill();
-  ctx.strokeStyle = 'rgba(234,223,184,0.6)'; ctx.lineWidth = 1.2;
-  ctx.beginPath(); ctx.ellipse(0, 49, 11, 4.2, 0, 0.05, Math.PI - 0.05); ctx.stroke();
-
-  // 一对竹蝉翼：转得越快离心张得越开，同时高频振翅
-  const spread  = 0.30 + active*0.38;
-  const flutter = active*Math.sin(now*46)*0.22;
-  const wing = side => {
-    ctx.save();
-    ctx.translate(side*9, 13);
-    ctx.rotate(side*(spread + flutter));
+  // ycd.png 替换手绘蝉身：绕自身中心自旋，转的就是这张图
+  const imgOk = ycdImg.complete && ycdImg.naturalWidth > 0;
+  if(imgOk){
+    spin2d += (omega*0.45 + Math.sin(now*0.6)*0.15) * dt;
+    ctx.rotate(spin2d);
+    const iw = ycdImg.naturalWidth, ih = ycdImg.naturalHeight;
+    const PH = 54, PW = PH * iw / ih;   // 显示高度与筒身+翼幅相当，宽度按图比例
+    ctx.drawImage(ycdImg, -PW/2, -PH/2, PW, PH);
+  }else{
+    // 图片加载中/失败：回落手绘蝉身（不空白，图片就绪后自动切换）
+    // 筒身：浅竹色
+    if(!tubeGrad){
+      tubeGrad = ctx.createLinearGradient(-12, 0, 12, 0);
+      tubeGrad.addColorStop(0, '#b7a271');
+      tubeGrad.addColorStop(0.3, '#eadfb8');
+      tubeGrad.addColorStop(0.62, '#dfd0a2');
+      tubeGrad.addColorStop(1, '#9b8452');
+    }
+    ctx.fillStyle = tubeGrad;
     ctx.beginPath();
-    ctx.moveTo(0, 0);
-    ctx.bezierCurveTo(side*13, 9, side*14, 30, side*5, 42);
-    ctx.bezierCurveTo(side*-1, 33, side*-4, 12, 0, 0);
-    ctx.fillStyle = 'rgba(243,235,211,0.88)';
+    ctx.roundRect(-12, 4, 24, 46, 6);
     ctx.fill();
-    ctx.strokeStyle = 'rgba(150,120,70,0.55)';
-    ctx.lineWidth = 1;
-    ctx.stroke();
-    // 翼脉
-    ctx.strokeStyle = 'rgba(150,120,70,0.45)';
-    ctx.lineWidth = 0.8;
+
+    // 尾端开口
+    ctx.fillStyle = '#4c3d24';
+    ctx.beginPath(); ctx.ellipse(0, 49, 11, 4.2, 0, 0, TAU); ctx.fill();
+    ctx.strokeStyle = 'rgba(234,223,184,0.6)'; ctx.lineWidth = 1.2;
+    ctx.beginPath(); ctx.ellipse(0, 49, 11, 4.2, 0, 0.05, Math.PI - 0.05); ctx.stroke();
+
+    // 一对竹蝉翼：转得越快离心张得越开，同时高频振翅
+    const spread  = 0.30 + active*0.38;
+    const flutter = active*Math.sin(now*46)*0.22;
+    const wing = side => {
+      ctx.save();
+      ctx.translate(side*9, 13);
+      ctx.rotate(side*(spread + flutter));
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.bezierCurveTo(side*13, 9, side*14, 30, side*5, 42);
+      ctx.bezierCurveTo(side*-1, 33, side*-4, 12, 0, 0);
+      ctx.fillStyle = 'rgba(243,235,211,0.88)';
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(150,120,70,0.55)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+      // 翼脉
+      ctx.strokeStyle = 'rgba(150,120,70,0.45)';
+      ctx.lineWidth = 0.8;
+      ctx.beginPath();
+      ctx.moveTo(side*2, 4);  ctx.quadraticCurveTo(side*9, 18, side*5, 38);
+      ctx.moveTo(side*1, 6);  ctx.quadraticCurveTo(side*3, 20, side*1.5, 34);
+      ctx.stroke();
+      ctx.restore();
+    };
+    wing(-1); wing(1);
+
+    // 红箍(蝉头)
+    ctx.fillStyle = '#cf3b2a';
     ctx.beginPath();
-    ctx.moveTo(side*2, 4);  ctx.quadraticCurveTo(side*9, 18, side*5, 38);
-    ctx.moveTo(side*1, 6);  ctx.quadraticCurveTo(side*3, 20, side*1.5, 34);
-    ctx.stroke();
-    ctx.restore();
-  };
-  wing(-1); wing(1);
+    ctx.roundRect(-12.5, 2, 25, 10, 4);
+    ctx.fill();
 
-  // 红箍(蝉头)
-  ctx.fillStyle = '#cf3b2a';
-  ctx.beginPath();
-  ctx.roundRect(-12.5, 2, 25, 10, 4);
-  ctx.fill();
+    // 膜面(蒙在红箍里的竹膜) + 发声时透光
+    ctx.fillStyle = '#f6eed8';
+    ctx.beginPath(); ctx.ellipse(0, 3, 10.5, 4.2, 0, 0, TAU); ctx.fill();
+    if(active > 0.05){
+      ctx.globalAlpha = active*0.85;
+      ctx.shadowColor = '#ffcf8e'; ctx.shadowBlur = 18*active;
+      ctx.fillStyle = '#ffe9bd';
+      ctx.beginPath(); ctx.ellipse(0, 3, 8.5, 3.4, 0, 0, TAU); ctx.fill();
+      ctx.shadowBlur = 0; ctx.globalAlpha = 1;
+    }
 
-  // 膜面(蒙在红箍里的竹膜) + 发声时透光
-  ctx.fillStyle = '#f6eed8';
-  ctx.beginPath(); ctx.ellipse(0, 3, 10.5, 4.2, 0, 0, TAU); ctx.fill();
-  if(active > 0.05){
-    ctx.globalAlpha = active*0.85;
-    ctx.shadowColor = '#ffcf8e'; ctx.shadowBlur = 18*active;
-    ctx.fillStyle = '#ffe9bd';
-    ctx.beginPath(); ctx.ellipse(0, 3, 8.5, 3.4, 0, 0, TAU); ctx.fill();
-    ctx.shadowBlur = 0; ctx.globalAlpha = 1;
+    // 一对黑眼睛，点在红箍两侧
+    const eye = side => {
+      ctx.fillStyle = '#17130c';
+      ctx.beginPath(); ctx.arc(side*8.5, 7.5, 2.4, 0, TAU); ctx.fill();
+      ctx.fillStyle = 'rgba(255,255,255,0.75)';
+      ctx.beginPath(); ctx.arc(side*8.5 - 0.7, 6.8, 0.7, 0, TAU); ctx.fill();
+    };
+    eye(-1); eye(1);
+
+    // 膜心线结
+    ctx.fillStyle = '#d84a35';
+    ctx.beginPath(); ctx.arc(0, 2, 2, 0, TAU); ctx.fill();
   }
-
-  // 一对黑眼睛，点在红箍两侧
-  const eye = side => {
-    ctx.fillStyle = '#17130c';
-    ctx.beginPath(); ctx.arc(side*8.5, 7.5, 2.4, 0, TAU); ctx.fill();
-    ctx.fillStyle = 'rgba(255,255,255,0.75)';
-    ctx.beginPath(); ctx.arc(side*8.5 - 0.7, 6.8, 0.7, 0, TAU); ctx.fill();
-  };
-  eye(-1); eye(1);
-
-  // 膜心线结
-  ctx.fillStyle = '#d84a35';
-  ctx.beginPath(); ctx.arc(0, 2, 2, 0, TAU); ctx.fill();
 
   ctx.restore();
 }

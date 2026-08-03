@@ -6,6 +6,7 @@ const CACHE = 'zzl-v1';
 const CORE = [
   './', './manifest.webmanifest', './apple-touch-icon.png',
   './icon-192.png', './icon-512.png',
+  './res/ycd.png',
   './3d/boot3d.js', './3d/model.js',
   './3d/vendor/three.module.min.js', './3d/vendor/OrbitControls.js',
 ];
