@@ -12,9 +12,7 @@ dist/
 
 # wrangler 本地状态
 .wrangler/
-worker/.wrangler/
 .dev.vars
-worker/.dev.vars
 
 # 日志与临时文件
 *.log

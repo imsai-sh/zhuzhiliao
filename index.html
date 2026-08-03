@@ -20,13 +20,8 @@
 <meta property="og:locale" content="zh_CN">
 <meta property="og:title" content="竹知了 · 一转就哇哇叫">
 <meta property="og:description" content="还记得小时候甩起来哇哇叫的竹蝉吗？按住画圈甩起来，转得越快叫得越响。免费网页版，无需下载，直开即玩。">
-<meta property="og:image" content="https://zhuzhiliao.imsai.cc/og-image.jpg">
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="630">
-<meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="竹知了 · 一转就哇哇叫">
 <meta name="twitter:description" content="传统竹蝉玩具的网页模拟版：按住画圈甩起来，转得越快叫得越响。免费、无需下载，直开即玩。">
-<meta name="twitter:image" content="https://zhuzhiliao.imsai.cc/og-image.jpg">
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -56,8 +51,6 @@
       "playMode": "https://schema.org/SinglePlayer",
       "isAccessibleForFree": true,
       "offers": { "@type": "Offer", "price": "0", "priceCurrency": "CNY", "availability": "https://schema.org/InStock" },
-      "image": "https://zhuzhiliao.imsai.cc/og-image.jpg",
-      "screenshot": { "@type": "ImageObject", "url": "https://zhuzhiliao.imsai.cc/og-image.jpg", "inLanguage": "zh-CN" },
       "author": { "@id": "https://www.imsai.cc/#person" },
       "sameAs": ["https://github.com/imsai-sh/zhuzhiliao"],
       "keywords": "竹知了,竹蝉,拉线蝉,传统玩具,民间玩具,怀旧玩具,网页玩具,在线小游戏",
@@ -73,12 +66,6 @@
   ]
 }
 </script>
-<script
-  defer
-  src="https://vibecafe.ai/telemetry/v1.js"
-  data-vc-product-id="cmsap4sw000000ahz2kvrogxg"
-  data-vc-auth-key="vc_web_Kt9i5rZoGPGWQHRT5Kdy1Q8qOz4Y-97Pccs-RIdxLDg"
-></script>
 <title>竹知了 · 一转就哇哇叫｜竹蝉玩具免费在线玩</title>
 <script type="importmap">
 {"imports":{ "three":"./3d/vendor/three.module.min.js" }}
@@ -231,35 +218,6 @@
   }
   .installtip.gone{ opacity:0; pointer-events:none; }
 
-  /* —— 底部统计行 —— */
-  .stats{
-    position:fixed; left:50%; bottom:calc(8px + env(safe-area-inset-bottom));
-    transform:translateX(-50%);
-    font-family:var(--serif); font-size:11px; letter-spacing:.14em;
-    color:rgba(240,230,210,.55); white-space:nowrap;
-    pointer-events:none;
-  }
-  .stats b{ font-weight:700; color:rgba(255,207,158,.62); font-variant-numeric:tabular-nums; display:inline-block; }
-  /* —— 「我 X 哇」整体动效：转动时三字齐亮齐放大，每哇弹跳一次 —— */
-  .stats .mine{
-    display:inline-block; transform-origin:center;
-    transition:transform .35s ease, color .35s ease, text-shadow .35s ease;
-  }
-  .stats .mine b{ transition:color .35s ease, text-shadow .35s ease; }
-  .stats .mine.hot{
-    color:#ffb36b; transform:scale(1.22);
-    text-shadow:0 0 10px rgba(255,150,80,.55);
-  }
-  .stats .mine.hot b{ color:#ffd08a; text-shadow:0 0 16px rgba(255,160,90,.95); }
-  .stats .mine.minepop{ animation:minepop .5s cubic-bezier(.2,1.6,.4,1); }
-  @keyframes minepop{
-    0%{ transform:scale(1.22); }
-    35%{ transform:scale(1.7); }
-    100%{ transform:scale(1.22); }
-  }
-  .stats b.wahflash{ animation:wahflash .5s ease; }
-  @keyframes wahflash{ 0%{ color:#ff8a50; text-shadow:0 0 12px rgba(255,138,80,.8); } 100%{} }
-
   /* —— 左下注脚 —— */
   .lore{
     position:fixed;
@@ -275,12 +233,6 @@
     .ghlink{ font-size:10.5px; padding:5px 10px 5px 13px; }
     .ghlink.author{ top:calc(56px + env(safe-area-inset-top)); }
     .ghlink.install{ top:calc(90px + env(safe-area-inset-top)); }
-    .stats{
-      left:calc(12px + env(safe-area-inset-left));
-      transform:none;
-      bottom:calc(14px + env(safe-area-inset-bottom));
-      max-width:56vw; white-space:normal; line-height:2; text-align:left;
-    }
     .hint{
       font-size:13px; letter-spacing:.14em; padding:10px 18px;
       bottom:calc(184px + env(safe-area-inset-bottom));   /* 避开右下控制区 */
@@ -339,11 +291,6 @@
 </noscript>
 
 <div class="unlock" id="unlock" hidden>🔊 点一下开声</div>
-
-<div class="stats" id="stats" hidden>
-  此刻 <b id="stOnline">–</b> 人 · 来客 <b id="stVisitors">–</b> · 访问 <b id="stVisits">–</b>
-  · 全球 <b id="stWahs">–</b> 哇 · <span class="mine" id="stMineWrap">我 <b id="stMine">0</b> 哇</span>
-</div>
 
 <script>
 'use strict';
@@ -405,7 +352,6 @@ let ropeDist = ROPE_LEN, taut = 0;
 let rps = 0, drive = 0, active = 0;       // 声音驱动量 0~1
 let singTime = 0, hintGone = false;
 let idleTime = 0;                         // 完全静置的累计时长
-let revAccum = 0;                         // 手动甩的角度累计(每 2π 记一哇)
 let needSoundTime = 0;                    // "想出声却出不了"的持续时长
 
 /* ---------- ycd.png 替换蝉身（转的就是这张图） ---------- */
@@ -807,18 +753,6 @@ function update(dt){
   prevTheta = theta;
   rps = Math.abs(omega)/TAU;
 
-  // 手动甩出的圈数计入「哇」——自动甩不算数
-  if(!auto.on && active > 0.3){
-    revAccum += Math.abs(dth);
-    if(revAccum >= TAU){
-      const n = Math.floor(revAccum/TAU);
-      revAccum -= n*TAU;
-      addWah(n);
-    }
-  }else{
-    revAccum = 0;
-  }
-
   ropeDist = Math.hypot(tube.x - stick.x, tube.y - stick.y);
   taut = clamp((ropeDist/ROPE_LEN - 0.88)/0.12, 0, 1);
   drive = clamp((rps - 1.1)/2.6, 0, 1);
@@ -856,7 +790,6 @@ function update(dt){
   if(wantSound && AC && AC.state !== 'running') needSoundTime += dt;
   else needSoundTime = 0;
 
-  stEls.mineWrap.classList.toggle('hot', active > 0.3);
   if(active > 0.3){
     singTime += dt;
     if(!hintGone && singTime > 1.0){
@@ -1378,112 +1311,6 @@ window.addEventListener('pageshow', () => {   // bfcache 恢复时也拉一把
     AC.resume().catch(() => {});
   }
 });
-
-/* ============================================================
-   计数 —— 全站实时(云端 Durable Object) + 个人(浏览器本地)
-   ============================================================ */
-const API_ORIGIN = location.host === 'zhuzhiliao.imsai.cc'
-  ? location.origin                       // 同源走 /api/* 路由
-  : 'https://zhuzhiliao.imsai.cc';        // pages.dev / 本地文件 / 局域网 等一律走主域名
-
-const stEls = {
-  root: document.getElementById('stats'),
-  online: document.getElementById('stOnline'),
-  visitors: document.getElementById('stVisitors'),
-  visits: document.getElementById('stVisits'),
-  wahs: document.getElementById('stWahs'),
-  mine: document.getElementById('stMine'),
-  mineWrap: document.getElementById('stMineWrap'),
-};
-
-let uid = '', myWah = 0;
-try{
-  uid = localStorage.getItem('zzl_uid') || '';
-  if(!uid){
-    uid = (crypto.randomUUID && crypto.randomUUID())
-       || (Date.now().toString(36) + Math.random().toString(36).slice(2));
-    localStorage.setItem('zzl_uid', uid);
-  }
-  myWah = parseInt(localStorage.getItem('zzl_mywah') || '0', 10) || 0;
-}catch(_){ /* 无痕模式等 localStorage 不可用时静默降级 */ }
-
-let ws = null, wsRetry = 0, saidHi = false, pendingWah = 0, lastWahs = -1;
-const fmt = n => n.toLocaleString('zh-Hans-CN');
-
-function renderStats(m){
-  stEls.online.textContent = fmt(m.online);
-  stEls.visitors.textContent = fmt(m.visitors);
-  stEls.visits.textContent = fmt(m.visits);
-  stEls.wahs.textContent = fmt(m.wahs);
-  if(lastWahs >= 0 && m.wahs > lastWahs){
-    stEls.wahs.classList.remove('wahflash');
-    void stEls.wahs.offsetWidth;         // 重启动画
-    stEls.wahs.classList.add('wahflash');
-  }
-  lastWahs = m.wahs;
-}
-function renderMine(){ stEls.mine.textContent = fmt(myWah); }
-
-function wsConnect(){
-  if(ws && ws.readyState <= 1) return;
-  let sock;
-  try{ sock = new WebSocket(API_ORIGIN.replace(/^http/, 'ws') + '/api/ws'); }
-  catch(_){ return; }
-  ws = sock;
-  sock.onopen = () => {
-    wsRetry = 0;
-    sock.send(JSON.stringify({ t: 'hi', uid, v: saidHi ? 0 : 1 }));
-    saidHi = true;                       // 断线重连不重复计访问
-  };
-  sock.onmessage = ev => {
-    try{
-      const m = JSON.parse(ev.data);
-      if(m.t === 'stats') renderStats(m);
-    }catch(_){}
-  };
-  sock.onclose = () => {
-    ws = null;
-    setTimeout(wsConnect, Math.min(30000, 1000*Math.pow(2, wsRetry++)));
-  };
-  sock.onerror = () => { try{ sock.close(); }catch(_){} };
-}
-
-// 心跳保活（服务端由运行时自动应答，不唤醒 DO）；本地攒的哇 1.2s 批量上报
-setInterval(() => { if(ws && ws.readyState === 1) ws.send('ping'); }, 25000);
-setInterval(() => {
-  if(pendingWah > 0 && ws && ws.readyState === 1){
-    const n = Math.min(pendingWah, 30);
-    ws.send(JSON.stringify({ t: 'wah', n }));
-    pendingWah -= n;
-  }
-}, 1200);
-
-// 页面关闭前把没上报的哇用 beacon 补上
-window.addEventListener('pagehide', () => {
-  if(pendingWah > 0 && navigator.sendBeacon){
-    navigator.sendBeacon(API_ORIGIN + '/api/wah', JSON.stringify({ n: pendingWah }));
-    pendingWah = 0;
-  }
-});
-
-let mySaveTimer = 0;
-function addWah(n){
-  myWah += n; pendingWah += n;
-  renderMine();
-  stEls.mineWrap.classList.remove('minepop');
-  void stEls.mineWrap.offsetWidth;      // 重启动画
-  stEls.mineWrap.classList.add('minepop');
-  if(!mySaveTimer){
-    mySaveTimer = setTimeout(() => {
-      mySaveTimer = 0;
-      try{ localStorage.setItem('zzl_mywah', String(myWah)); }catch(_){}
-    }, 800);
-  }
-}
-
-stEls.root.hidden = false;
-renderMine();
-wsConnect();
 
 /* —— Service Worker：安卓 Chrome 的安装提示以此为门槛，顺带离线可玩 —— */
 if('serviceWorker' in navigator && window.isSecureContext && location.protocol !== 'file:'){
