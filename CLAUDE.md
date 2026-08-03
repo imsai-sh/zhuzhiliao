@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 项目概述
 
-竹知了 —— 传统玩具的 Web 模拟版（甩起来"哇哇"叫的竹筒玩具）。核心承诺：**零依赖、单文件、无构建**，用浏览器直开 `index.html` 即可玩（含 `file://`）。线上地址 <https://zhuzhiliao.imsai.cc>，页面走 Cloudflare Pages。
+竹大嘴 —— 传统玩具的 Web 模拟版（甩起来"哇哇"叫的竹筒玩具）。核心承诺：**零依赖、单文件、无构建**，用浏览器直开 `index.html` 即可玩（含 `file://`）。线上地址 <https://zhuzhiliao.imsai.cc>，页面走 Cloudflare Pages。
 
 ## 开发流程和注意事项
 - 禁止擅自push到远程oss
