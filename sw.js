@@ -5,9 +5,23 @@
 const CACHE = 'zzl-v1';
 const CORE = [
   './', './manifest.webmanifest', './apple-touch-icon.png',
-  './icon-192.png', './icon-512.png',
-  './3d/boot3d.js', './3d/model.js',
-  './3d/vendor/three.module.min.js', './3d/vendor/OrbitControls.js',
+  './icon-192.png', './icon-512.png', './title.jpg', './moon.png', './2D.png', './2D_1.png',
+  './Audio/1.mp3',
+  './Audio/37815454648-1-192.mp3',
+  './Audio/37815454648-1-192_1.mp3',
+  './Audio/37815454648-1-192_2.mp3',
+  './Audio/40016871707-1-192.mp3',
+  './Audio/40016871707-1-192_1.mp3',
+  './Audio/40016871707-1-192_2.mp3',
+  './Audio/40016871707-1-192_3.mp3',
+  './Audio/40016871707-1-192_4.mp3',
+  './Audio/ba4faa37240e4a2486cbe54b666d76a1.mp3',
+  './Audio/ba4faa37240e4a2486cbe54b666d76a1_1.mp3',
+  './Audio/ba4faa37240e4a2486cbe54b666d76a1_2.mp3',
+  './Audio/ba4faa37240e4a2486cbe54b666d76a1_3.mp3',
+  './Audio/ba4faa37240e4a2486cbe54b666d76a1_4.mp3',
+  './Audio/ba4faa37240e4a2486cbe54b666d76a1_5.mp3',
+  './Audio/ba4faa37240e4a2486cbe54b666d76a1_6.mp3',
 ];
 
 self.addEventListener('install', e => {

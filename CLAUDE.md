@@ -33,17 +33,9 @@ cd worker && npx wrangler deploy
 
 单文件包含全部 HTML/CSS/JS，按注释分节：**物理 → 声音 → 视觉特效粒子 → 绘制 → 主循环 & 交互 → 计数**。
 
-- **物理是唯一事实源**：竹筒是绳系质点（重力 + 只拉不推的弹性绳 + 空气阻力），1/240s 定步长积分。发声核心变量是绳方向角速度，声音、2D 绘制、3D 层都只消费物理状态。
-- **声音**：主音源是内嵌 base64 AAC 真实录音采样（变量 `ZZL_SAMPLE`，无缝循环，回放速率随转速），解码失败回退纯 Web Audio 合成链。音频初始化受 user activation 规则约束（首次触摸/点击时解锁）；有僵尸 AudioContext 心跳检测与重建（后台切回失声问题）。
+- **物理是唯一事实源**：竹筒是绳系质点（重力 + 只拉不推的弹性绳 + 空气阻力），1/240s 定步长积分。发声核心变量是绳方向角速度，声音和 2D 绘制都只消费物理状态。
+- **声音**：主音源从 `Audio/` 中预加载，甩动期间随机连续播放不同录音和声道，倍速随转速在 0.75–1.66 之间变化；解码失败回退纯 Web Audio 合成链。音频初始化受 user activation 规则约束（首次触摸/点击时解锁）；有僵尸 AudioContext 心跳检测与重建（后台切回失声问题）。
 - **计数**：本地先累计，1.2s 批量走 WebSocket 上报；页面关闭 `sendBeacon` 兜底；断线指数退避重连。个人哇数只存 localStorage。
-
-### `3d/`（可选 WebGL 渲染层）
-
-主站通过动态 `import('./3d/boot3d.js')` 在 2D 画布上叠一层透明 WebGL。**物理、声音、计数全部留在主站**，3D 层只是每帧接收物理状态摆位姿。
-
-- `boot3d.js`：`init(canvas)` 返回 `{resize, render, clear, dispose}`，失败返回 `null`；`file://` 直开或 WebGL 不可用时 import/init 静默失败，主站自动回落 2D 手绘小蝉——**这个回落链不能破**。
-- `model.js`：纯代码程序化 Three.js 模型（Canvas 2D 生成贴图，无外部网格/贴图资源），比例按实物三视图测量，以筒身高为 1 单位。
-- `vendor/`：three.js 与 OrbitControls 直接 vendor 进仓库（importmap 映射 `three`），不走 npm。
 
 ### `worker/`（Cloudflare Worker 计数后端）
 
@@ -58,5 +50,4 @@ cd worker && npx wrangler deploy
 
 - **不引入任何构建步骤或 npm 依赖**：新资源要么内嵌（base64）、要么 vendor 进仓库、要么走可静默失败的动态 import。
 - **移动端优先**：改交互/布局时注意安全区适配、多点触控互斥、触屏锚点上移、绳长随屏幕缩放这些已有处理。
-- 修改 3D 层时保持接口不变（主站只认 `init` 返回的四个方法），且任何失败都必须静默回落 2D。
 - README.md 详细记录了发声原理、采样制作方式、物理模型和后端同步策略，改相关行为时同步更新。
