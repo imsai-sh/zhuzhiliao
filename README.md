@@ -5,9 +5,11 @@
 **在线试玩：<https://imsai.top>**
 
 > [!TIP]
-> **新开源项目：[Awesome DeepSeek Harness Plugins](https://github.com/imsai-sh/awesome-deepseek-harness-plugins)**
+> **新开源项目：[Fish Pocket](https://github.com/imsai-sh/fish-pocket)**
 >
-> 面向 DeepSeek harness 插件生态的 Awesome 清单，欢迎 Star 和共建。
+> 让 DeepSeek Harness 运行在 iPhone 和 iPad 上，随时随地使用。欢迎 Star 关注、一起共建。
+>
+> 往期推荐：[DSH 1024Store](https://github.com/imsai-sh/dsh-1024store)——DeepSeek Harness 的开源插件市场，在线搜索、安装和排行 dsh 插件：<https://deepseek1024.com>。
 
 > [!CAUTION]
 > **本项目未授权任何人再分发或公开部署。**
